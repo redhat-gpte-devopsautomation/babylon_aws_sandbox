@@ -1,0 +1,62 @@
+---
+- environment:
+    AWS_ACCESS_KEY_ID: "{{ pool_manager_aws_access_key_id }}"
+    AWS_SECRET_ACCESS_KEY: "{{ pool_manager_aws_secret_access_key }}"
+  block:
+    - name: Check if sandbox is already associated
+      vars:
+        _expression: >-
+          available = :a
+          and guid = :g
+          and envtype = :e
+          and attribute_exists(aws_access_key_id)
+          and attribute_exists(aws_secret_access_key)
+          and attribute_exists(hosted_zone_id)
+          and attribute_exists(#Z)
+          and attribute_exists(account_id)
+        _data:
+          ":a":
+            BOOL: false
+          ":g":
+            S: "{{ guid }}"
+          ":e":
+            S: "{{ env_type }}"
+      command: >-
+        aws
+        --region "{{ pool_region }}"
+        dynamodb scan
+        --table-name {{ pool_table }}
+        --filter-expression '{{ _expression }}'
+        --expression-attribute-values '{{ _data | to_json }}'
+        --expression-attribute-names '{"#Z": "zone"}'
+        --max-item 1
+      register: r_associated
+
+    - set_fact:
+        query1: "{{ r_associated.stdout | from_json }}"
+
+    - when: query1.Count == 1
+      block:
+        - debug:
+            msg: "{{ guid }} - {{ env_type }} and {{ query1.Items[0].name.S }} already associated"
+
+        - name: Save sandbox variables
+          set_fact:
+            sandbox_name: "{{ query1.Items[0].name.S }}"
+
+        - name: Mark the sandbox for cleanup
+          vars:
+            _data:
+              ":av":
+                BOOL: true
+          command: >-
+            aws --region {{ pool_region }}
+            dynamodb update-item
+            --table-name {{ pool_table }}
+            --key "{\"name\": {\"S\": \"{{ sandbox_name }}\"}}"
+            --update-expression "SET to_cleanup = :av"
+            --expression-attribute-values '{{ _data | to_json }}'
+
+    - when: query1.Count == 0
+      debug:
+        msg: No sandbox found for {{ guid }} - {{ env_type }}

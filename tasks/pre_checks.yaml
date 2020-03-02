@@ -1,0 +1,39 @@
+---
+- name: Ensure mandatory variables are set
+  assert:
+    that: "{{ check.that }}"
+    fail_msg: "{{ check.msg }}"
+    quiet: true
+  loop_control:
+    loop_var: check
+    label: "{{ check.msg }}"
+  loop:
+    - msg: Variable guid is not defined
+      that: guid is defined and guid != ''
+
+    - msg: Variable env_type is not defined
+      that: env_type is defined and env_type != ''
+
+    - msg: Variable pool_region is not defined
+      that: pool_region is defined and pool_region != ''
+
+    - msg: Variable pool_manager_aws_access_key_id is not defined
+      that:
+        - pool_manager_aws_access_key_id is defined
+        - pool_manager_aws_access_key_id != ''
+
+    - msg: Variable pool_manager_aws_secret_access_key is not defined
+      that:
+        - pool_manager_aws_secret_access_key is defined
+        - pool_manager_aws_secret_access_key != ''
+
+    - msg: Variable pool_manager_vault_password is not defined
+      that:
+        - pool_manager_vault_password is defined
+        - pool_manager_vault_password != ''
+
+    - msg: email and student name can't be both undefined
+      that: >-
+        email is defined and email != ''
+        or
+        student_name is defined and student_name != ''

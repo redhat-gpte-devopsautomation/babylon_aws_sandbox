@@ -1,0 +1,30 @@
+---
+buffer: 20
+
+# Variables from Anarchy Subject
+guid: "{{ anarchy_subject.vars.job_vars.guid | default(None) }}"
+
+# Variables from either Governor or Subject
+env_type: >-
+  {{ vars.anarchy_governor.vars.job_vars.env_type
+  | default(anarchy_subject.vars.job_vars.env_type)
+  | default(None) }}
+
+email: >-
+  {{ vars.anarchy_governor.vars.job_vars.email
+  | default(anarchy_subject.vars.job_vars.email)
+  | default(babylon_user_email)
+  | default(None) }}
+
+student_name: >-
+  {{  vars.anarchy_governor.vars.job_vars.student_name
+  | default(anarchy_subject.vars.job_vars.student_name)
+  | default(babylon_username)
+  | default('babylon') }}
+
+# Variables from secret via the aws_sandbox_manager variable
+pool_table: "{{ aws_sandbox_manager.pool_table | default('accounts') }}"
+pool_region: "{{ aws_sandbox_manager.pool_region | default('us-east-1') }}"
+pool_manager_aws_access_key_id: "{{ aws_sandbox_manager.pool_manager_aws_access_key_id | default(None) }}"
+pool_manager_aws_secret_access_key: "{{ aws_sandbox_manager.pool_manager_aws_secret_access_key | default(None) }}"
+pool_manager_vault_password: "{{ aws_sandbox_manager.pool_manager_vault_password | default(None) }}"
