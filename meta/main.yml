@@ -1,5 +1,5 @@
 galaxy_info:
-  author: Guillaume Core
+  author: fridim
   description: Babylon Anarchy role for AWS sandboxes
   company: Red Hat
   issue_tracker_url: https://github.com/redhat-gpte-devopsautomation/babylon_aws_sandbox/issues
