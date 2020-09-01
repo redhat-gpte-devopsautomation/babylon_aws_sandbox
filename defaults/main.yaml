@@ -2,23 +2,23 @@
 buffer: 20
 
 # Variables from Anarchy Subject
-guid: "{{ anarchy_subject.vars.job_vars.guid | default(None) }}"
+guid: "{{ vars.anarchy_subject.vars.job_vars.guid | default(None) }}"
 
 # Variables from either Governor or Subject
 env_type: >-
   {{ vars.anarchy_governor.vars.job_vars.env_type
-  | default(anarchy_subject.vars.job_vars.env_type)
+  | default(vars.anarchy_subject.vars.job_vars.env_type)
   | default(None) }}
 
 email: >-
   {{ vars.anarchy_governor.vars.job_vars.email
-  | default(anarchy_subject.vars.job_vars.email)
+  | default(vars.anarchy_subject.vars.job_vars.email)
   | default(babylon_user_email)
   | default(None) }}
 
 student_name: >-
   {{  vars.anarchy_governor.vars.job_vars.student_name
-  | default(anarchy_subject.vars.job_vars.student_name)
+  | default(vars.anarchy_subject.vars.job_vars.student_name)
   | default(babylon_username)
   | default('babylon') }}
 

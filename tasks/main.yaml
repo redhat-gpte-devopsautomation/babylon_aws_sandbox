@@ -1,6 +1,6 @@
 ---
 - when: >-
-    anarchy_subject.vars.job_vars.__meta__.aws_sandboxed | default(false)
+    vars.anarchy_subject.vars.job_vars.__meta__.aws_sandboxed | default(false)
     or
     vars.anarchy_governor.vars.job_vars.__meta__.aws_sandboxed | default(false)
 
