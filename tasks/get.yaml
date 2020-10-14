@@ -31,8 +31,10 @@
         --expression-attribute-names '{"#Z": "zone"}'
         --max-item 1
       register: r_associated
+      changed_when: false
 
-    - set_fact:
+    - name: Set fact of dynamodb scan
+      set_fact:
         query1: "{{ r_associated.stdout | from_json }}"
 
     - when: query1.Count == 1
@@ -66,6 +68,7 @@
             --expression-attribute-names '{"#Z": "zone"}'
             --max-item {{ buffer }}
           register: r_shortlist
+          changed_when: false
 
         - name: Save the list of the first free sandboxes
           set_fact:
@@ -78,6 +81,7 @@
             namespace: openshift-config-managed
             name: console-public
           register: r_ocp_console_public
+          changed_when: false
 
         - name: Set ocp_console_url
           set_fact:
