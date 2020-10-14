@@ -175,7 +175,6 @@
     skip_update_processing: true
     metadata:
       labels:
-        sandboxed: true
         sandbox: "{{ sandbox_name }}"
     spec:
       vars:
