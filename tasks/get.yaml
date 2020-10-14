@@ -156,25 +156,35 @@
             vaulted_text: "{{ sandbox_aws_secret_access_key }}"
           include_tasks: unvault.yml
 
-- name: Save vars in aws_sandbox_result dictionary
+- name: Save secret of aws_sandbox_result dictionary
   set_fact:
-    aws_sandbox_result:
-      sandbox_name: "{{ sandbox_name }}"
-      sandbox_account: "{{ sandbox_account }}"
-      sandbox_zone: "{{ sandbox_zone }}"
-      sandbox_hosted_zone_id: "{{ sandbox_hosted_zone_id }}"
+    aws_sandbox_secrets:
       sandbox_aws_access_key_id: "{{ sandbox_aws_access_key_id }}"
       sandbox_aws_secret_access_key: "{{ sandbox_aws_secret_access_key }}"
-
       # agnosticd
-      HostedZoneId: "{{ sandbox_hosted_zone_id }}"
-      subdomain_base_suffix: ".{{ sandbox_zone }}"
       aws_access_key_id: "{{ sandbox_aws_access_key_id }}"
       aws_secret_access_key: "{{ sandbox_aws_secret_access_key }}"
 
-- name: Inject vars into dynamic_job_vars
+- name: Inject secrets into dynamic_job_vars
   set_fact:
     dynamic_job_vars: >-
       {{ vars.dynamic_job_vars
       | default({})
-      | combine(aws_sandbox_result, recursive=True) }}
+      | combine(aws_sandbox_secrets, recursive=True) }}
+
+- name: Set sandbox for {{ anarchy_subject_name }}
+  anarchy_subject_update:
+    skip_update_processing: true
+    metadata:
+      labels:
+        sandbox: "{{ sandbox_name }}"
+    spec:
+      vars:
+        job_vars:
+          sandbox_name: "{{ sandbox_name }}"
+          sandbox_account: "{{ sandbox_account }}"
+          sandbox_zone: "{{ sandbox_zone }}"
+          sandbox_hosted_zone_id: "{{ sandbox_hosted_zone_id }}"
+          # agnosticd
+          HostedZoneId: "{{ sandbox_hosted_zone_id }}"
+          subdomain_base_suffix: ".{{ sandbox_zone }}"
