@@ -160,7 +160,7 @@
             vaulted_text: "{{ sandbox_aws_secret_access_key }}"
           include_tasks: unvault.yml
 
-- name: Save secret of aws_sandbox_result dictionary
+- name: Save secret of aws_sandbox_secrets dictionary
   set_fact:
     aws_sandbox_secrets:
       sandbox_aws_access_key_id: "{{ sandbox_aws_access_key_id }}"
@@ -168,6 +168,8 @@
       # agnosticd
       aws_access_key_id: "{{ sandbox_aws_access_key_id }}"
       aws_secret_access_key: "{{ sandbox_aws_secret_access_key }}"
+      HostedZoneId: "{{ sandbox_hosted_zone_id }}"
+      subdomain_base_suffix: ".{{ sandbox_zone }}"
 
 - name: Inject secrets into dynamic_job_vars
   set_fact:
