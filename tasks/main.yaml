@@ -8,9 +8,13 @@
 
     - include_tasks: pre_checks.yaml
 
-    - name: Get sandbox (always but no callbacks)
+    - name: Get sandbox when it needs to be passed to tower job
       when:
+        # Do nothing unless executing an action
         - anarchy_action_config_name is defined
+        # Check action gets status of tower jobs, but does not need sandbox info
+        - anarchy_action_config_name != 'check'
+        # Callbacks from tower jobs and do not need sandbox info for processing
         - anarchy_action_callback_name is not defined
       include_tasks: get.yaml
 
