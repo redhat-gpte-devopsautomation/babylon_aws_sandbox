@@ -64,7 +64,7 @@
 
         - name: Get first available sandboxes older than 24h
           vars:
-            _yesterday: "{{ ansible_date_time.epoch | int  - 3600 * 24 }}"
+            _yesterday: "{{ ansible_date_time.epoch | int  - babylon_aws_sandbox_min_age }}"
           command: >-
             aws
             --region {{ pool_region }}
