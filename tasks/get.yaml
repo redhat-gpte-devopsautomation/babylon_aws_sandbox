@@ -57,22 +57,67 @@
 
     - when: query1.Count == 0
       block:
-        - name: Get first free sandboxes
+        - name: Gather facts for ansible_date_time
+          setup:
+            filter: ansible_date_time
+            gather_subset: min
+
+        - name: Get first available sandboxes older than 24h
+          vars:
+            _yesterday: "{{ ansible_date_time.epoch | int  - 3600 * 24 }}"
           command: >-
             aws
             --region {{ pool_region }}
             dynamodb scan
             --table-name {{ pool_table }}
-            --filter-expression 'available = :a and attribute_exists(aws_access_key_id) and attribute_exists(aws_secret_access_key) and attribute_exists(hosted_zone_id) and attribute_exists(#Z) and attribute_exists(account_id)'
-            --expression-attribute-values '{":a":{"BOOL":true}}'
-            --expression-attribute-names '{"#Z": "zone"}'
+            --filter-expression 'available = :a
+            and #U < :b
+            and attribute_exists(aws_access_key_id)
+            and attribute_exists(aws_secret_access_key)
+            and attribute_exists(hosted_zone_id)
+            and attribute_exists(#Z)
+            and attribute_exists(account_id)'
+            --expression-attribute-values
+            '{":a":{"BOOL":true}, ":b":{"N":"{{_yesterday}}"}}'
+            --expression-attribute-names
+            '{"#Z": "zone", "#U": "aws:rep:updatetime"}'
             --max-item {{ buffer }}
           register: r_shortlist
           changed_when: false
 
+        - name: Save reply output of previous command as object
+          set_fact:
+            r_shortlist_reply: >-
+              {{ r_shortlist.stdout | from_json }}
+
+        - when: r_shortlist_reply.Count | int == 0
+          block:
+            - name: Get first available sandboxes again without 24h constraint
+              command: >-
+                aws
+                --region {{ pool_region }}
+                dynamodb scan
+                --table-name {{ pool_table }}
+                --filter-expression 'available = :a
+                and attribute_exists(aws_access_key_id)
+                and attribute_exists(aws_secret_access_key)
+                and attribute_exists(hosted_zone_id)
+                and attribute_exists(#Z)
+                and attribute_exists(account_id)'
+                --expression-attribute-values '{":a":{"BOOL":true}}'
+                --expression-attribute-names '{"#Z": "zone"}'
+                --max-item {{ buffer }}
+              register: r_shortlist_bis
+              changed_when: false
+
+            - name: Override reply output object (all available sandboxes)
+              set_fact:
+                r_shortlist_reply: "{{ r_shortlist_bis.stdout | from_json }}"
+
+
         - name: Save the list of the first free sandboxes
           set_fact:
-            sandbox_shortlist: "{{ r_shortlist.stdout | from_json | json_query('Items[*].name.S') }}"
+            sandbox_shortlist: "{{ r_shortlist_reply | json_query('Items[*].name.S') }}"
 
         - name: Get the cluster console
           k8s_info:
@@ -123,7 +168,7 @@
           register: _putaccount
 
         - debug:
-            var: r_shortlist
+            var: r_shortlist_reply
             verbosity: 2
 
         - debug:
@@ -132,8 +177,7 @@
 
         - set_fact:
             sandbox_picked: >-
-              {{ r_shortlist.stdout
-              | from_json
+              {{ r_shortlist_reply
               | json_query('Items[*]')
               | selectattr('name.S', 'equalto', _putaccount.stdout)
               | list }}
