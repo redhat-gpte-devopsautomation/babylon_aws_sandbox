@@ -12,16 +12,17 @@
       when:
         # Do nothing unless executing an action
         - anarchy_action_config_name is defined
-        # Check action gets status of tower jobs, but does not need sandbox info
-        - anarchy_action_config_name != 'check'
         # Callbacks from tower jobs and do not need sandbox info for processing
         - anarchy_action_callback_name is not defined
       include_tasks: get.yaml
 
-    - name: Mark sandbox for cleanup (destroy complete)
-      when:
-        - anarchy_action_config_name is defined
-        - anarchy_action_config_name == 'destroy'
-        - anarchy_action_callback_name is defined
-        - anarchy_action_callback_name == 'complete'
+    - name: Mark sandbox for cleanup (destroy complete or failed)
+      when: >-
+        (
+          'destroy' == anarchy_action_config_name | default('')
+          and
+          'complete' == anarchy_action_callback_name | default('')
+        ) or (
+          'destroy-failed' == current_state | default('')
+        )
       include_tasks: release.yaml
