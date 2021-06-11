@@ -22,7 +22,14 @@
           'destroy' == anarchy_action_config_name | default('')
           and
           'complete' == anarchy_action_callback_name | default('')
-        ) or (
-          'destroy-failed' == current_state | default('')
-        )
+        ) or
+        'destroy-failed' == current_state | default('') or
+        'destroy-canceled' == current_state | default('')
       include_tasks: release.yaml
+
+    - name: Complete deletion anarchy subject on destroy failure
+      when: >-
+        'destroy-failed' == current_state | default('') or
+        'destroy-canceled' == current_state | default('')
+      anarchy_subject_delete:
+        remove_finalizers: true
