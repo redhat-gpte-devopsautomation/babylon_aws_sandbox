@@ -209,8 +209,12 @@
 - name: Save secret of aws_sandbox_secrets dictionary
   set_fact:
     aws_sandbox_secrets:
+      sandbox_account: "{{ sandbox_account }}"
       sandbox_aws_access_key_id: "{{ sandbox_aws_access_key_id }}"
       sandbox_aws_secret_access_key: "{{ sandbox_aws_secret_access_key }}"
+      sandbox_hosted_zone_id: "{{ sandbox_hosted_zone_id }}"
+      sandbox_name: "{{ sandbox_name }}"
+      sandbox_zone: "{{ sandbox_zone }}"
       # agnosticd
       aws_access_key_id: "{{ sandbox_aws_access_key_id }}"
       aws_secret_access_key: "{{ sandbox_aws_secret_access_key }}"
